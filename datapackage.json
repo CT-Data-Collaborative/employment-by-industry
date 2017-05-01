@@ -1,0 +1,133 @@
+{
+  "name": "employment-by-industry",
+  "datapackage_version": "1.0-beta.18",
+  "title": "Employment-by-Industry",
+  "description": "Employment by Industry reports several labor statistics related to employment and wage.",
+  "version": "1.0",
+  "licenses": [{
+    "url": "http://opendatacommons.org/licenses/pddl/",
+    "name": "Open Data Commons Public Domain",
+    "version": "1.0",
+    "id": "odc-pddl"
+  }],
+  "sources": [{
+    "name": "ctdol",
+    "web": ""
+  }],
+  "author":[{
+    "name": "Jenna Daly",
+    "email": "jdaly@ctdata.org",
+    "web": "http://ctdata.org"
+  }],
+  "contributor": [],
+  "resources": [{
+    "path": "data/data.csv",
+    "format": "csv",
+    "schema": {
+      "fields": [{
+          "name": "Town/County",
+          "type": "string",
+          "dimension": false
+        }, {
+          "name": "FIPS",
+          "type": "string",
+          "dimension": false
+        }, {
+          "name": "Year",
+          "type": "string",
+          "dimension": false
+        }, {
+          "name": "Measure Type",
+          "type": "string",
+          "dimension": true
+        }, {
+          "name": "Variable",
+          "type": "string",
+          "dimension": true
+        }, {
+          "name": "Value",
+          "type": "number",
+          "dimension": false
+        }]
+      }
+    }
+  ],
+  "last_modified": "03/08/2017",
+  "ckan_extras": {
+    "full_description": {
+      "ckan_name": "Full Description",
+      "value": "Employment by Industry reports the total Number of Employers, the Annual Average Employment, and the Annual Average Wage by industry at the town, county, and state level. Industries included in this dataset vary from location to location. In as many locations as possible, five specific industry segments are consistently present (Construction, Manufacturing, Retail Trade, All Industries, Total Government) as well as the largest 3 out of the remaining segments for that location. Not every location has data for every segment, and some may not have data for the five consistently reported segments. This data is from the Connecticut Department of Labor Quarterly Census of Employment and Wages (QCEW). The program produces a comprehensive tabulation of employment and wage information for workers covered by Connecticut Unemployment Insurance (UI) laws and Federal workers covered by the Unemployment Compensation for Federal Employees (UCFE) program.",
+      "type": "string"
+    },
+    "suppression": {
+      "ckan_name": "Suppression",
+      "value": "",
+      "type": "string"
+    },
+    "technical_notes": {
+      "ckan_name": "Technical Notes",
+      "value": "Technical notes for advanced users",
+      "type": "string"
+    },
+    "socrata": {
+      "ckan_name": "Socrata",
+      "value": "False",,
+      "type": "string"
+    },
+    "socrata_url": {
+      "ckan_name": "Socrata Dataset URL",
+      "value": "",,
+      "type": "string"
+    },
+    "domain": {
+      "ckan_name": "Domain",
+      "value": "Economy",
+      "type": "string"
+    },
+    "subdomain": {
+      "ckan_name": "Subdomain",
+      "value": "Employment",
+      "type": "string"
+    },
+    "geography": {
+      "ckan_name": "Geography",
+      "value": "Town/County",
+      "type": "string",
+      "constraints": {"enum": ["Town", "County", "Town/County", "District", "Other"]}
+    },
+    "frequency": {
+      "ckan_name": "Frequency",
+      "value": "Annual",
+      "type": "string"
+    },
+    "years_in_catalog": {
+      "ckan_name": "Years in Catalog",
+      "value": [],
+      "type": "array"
+    },
+    "latest_year": {
+      "ckan_name": "Latest Year Available",
+      "value": "2015",
+      "type": "string"
+    },
+    "disabled_views": {
+      "ckan_name": "Disabled Views",
+      "value": [],
+      "type": "array",
+      "constraints": {"enum": ["map", "table", "bar", "line"]}
+    },
+    "units": {
+      "ckan_name": "Units",
+      "value": {
+        "Number": "",
+        "Percent": "%"
+      }
+    },
+    "default": {}
+  },
+  "spot_checks": [],
+  "dimension_groups": [
+    {"Measure Type": []},
+    {"Variable": []}
+  ]
+}
