@@ -93,6 +93,10 @@ for (i in 1:length(town_xls)) {
   all_towns <- rbind(all_towns, current_file) 
 } 
   
+#remove all rows where industry name is NA or Industry
+all_towns <- all_towns[!is.na(all_towns$`Industry Name`),]
+all_towns <- all_towns[all_towns$`Industry Name` != "Industry",]
+
 #set * to -9999 (suppressions)
 all_towns[all_towns == "*"] <- -9999
 
@@ -395,24 +399,46 @@ latest_year <- max(employment_by_industry$Year)
 employment_by_industry_profiles <- employment_by_industry[employment_by_industry$Year == latest_year,]
 
 #Step 1b: Isolate towns only
-omit <- c("County", "Connecticut")
-employment_by_industry_profiles <- employment_by_industry_profiles[!grepl(paste(omit, collapse = "|"), employment_by_industry_profiles$"Town/County"),]
+# omit <- c("County", "Connecticut")
+# employment_by_industry_profiles <- employment_by_industry_profiles[!grepl(paste(omit, collapse = "|"), employment_by_industry_profiles$"Town/County"),]
 
-#Step 2: Hardcode "-1" rank
-common <- c("Construction", "Manufacturing", "Retail Trade", "Total Private", "Total Government")
-employment_by_industry_profiles$Rank <- NA
-employment_by_industry_profiles$Rank[which(employment_by_industry_profiles$`Industry Name` %in% common)] <- -1
-
-#Step 3: Create subset df that only includes variable = "Annual Average Employment" (this is what determines rank) 
+#need to figure out from all industries, which ownership corresponds to the top industry
+#For example, Hartford County has Private Manufacturing and Government Manufacturing, we just want to grab the larger of the two
+#This is determined by the Annual Average Employment value
 subset_for_ranking <- employment_by_industry_profiles[employment_by_industry_profiles$Variable == "Annual Average Employment",]
 
-#Step 4: Define first function that applies rank grouped by town/county based on value of Annual avg. employment
+max_ownership <- subset_for_ranking %>% 
+  group_by(`Town/County`, `Year`, `Industry Name`) %>% 
+  summarise(Value = max(Value)) 
+
+#merge back in ownership column
+max_ownership <- as.data.frame(max_ownership)
+merge <- merge(max_ownership, subset_for_ranking, by = c("Town/County", "Year", "Value", "Industry Name"), all.x=T)
+
+#Step 2a: Backfill top 5 industries to all geogs
+backfill_top <- expand.grid(
+  `Town/County` = unique(merge$`Town/County`),
+  `Industry Name` = unique(merge$`Industry Name`)
+)
+
+complete_profiles <- merge(backfill_top, merge, by = c("Town/County", "Industry Name"), all.x=T)
+
+#if Value is NA, set to 0 (they wont be considered for top, but if any are in -1, they will be picked up)
+complete_profiles["Value"][is.na(complete_profiles["Value"] ) ] = 0
+
+#Step 2b: Hardcode "-1" rank
+common <- c("Construction", "Manufacturing", "Retail Trade", "Total Private", "Total Government")
+
+complete_profiles$Rank <- NA
+complete_profiles$Rank[which(complete_profiles$`Industry Name` %in% common)] <- -1
+
+#Step 3a: Define first function that applies rank grouped by town/county based on value of Annual avg. employment
 my_first_ranking_function <- function(a, b, c) {
   transform(a, ranking = ave(b, c, FUN = function(x) rank(-x, ties.method = "first")))
 }
 
 #Step 5: Apply 1st function to subset df (first step in identifying ranks 1,2,3)
-ranking_test <- my_first_ranking_function(subset_for_ranking, subset_for_ranking$"Value", subset_for_ranking$"Town/County")
+ranking_test <- my_first_ranking_function(complete_profiles, complete_profiles$"Value", complete_profiles$"Town/County")
 ranking_test_ordered <- arrange(ranking_test, Town.County, ranking)
 
 #Step 6: Re-assign common industy's rank to -1
@@ -429,6 +455,9 @@ my_second_ranking_function <- function(a, b, c) {
 ranking_step_two <- my_second_ranking_function(ranking_test_ordered, ranking_test_ordered$ranking, ranking_test_ordered$"Town.County")
 ranking_step_two <- arrange(ranking_step_two, Town.County, ranking2)
 
+ranking_step_two$Rank <- NULL
+ranking_step_two$ranking <- NULL
+
 #Step 9: Reassign ranking2 column to establish final "Rank" values
 ranking_step_two$ranking2[ranking_step_two$ranking2 == 5] <- -1
 ranking_step_two$ranking2[ranking_step_two$ranking2 == 6] <- 1
@@ -437,10 +466,7 @@ ranking_step_two$ranking2[ranking_step_two$ranking2 == 8] <- 3
 
 #Step 10: Set all other industries (anything that isn't top 8) to NA
 ranking_step_two$ranking2[ranking_step_two$ranking2 > 3] <- NA
-ranking_test_ordered_step_two <- arrange(ranking_step_two, Town.County, ranking)
-#remove intermediary ranking columns
-ranking_test_ordered_step_two$Rank <- NULL
-ranking_test_ordered_step_two$ranking <- NULL
+ranking_test_ordered_step_two <- arrange(ranking_step_two, Town.County, ranking2)
 #remove rows where ranking2 = NA
 ranking_test_ordered_step_two <- ranking_test_ordered_step_two[!is.na(ranking_test_ordered_step_two$ranking2),]
 
@@ -451,39 +477,31 @@ names(ranking_test_ordered_step_two)[names(ranking_test_ordered_step_two) == "Me
 names(ranking_test_ordered_step_two)[names(ranking_test_ordered_step_two) == "ranking2"] <- "Rank"
 
 #Step 12: Merge subset df back with original df
-employment_by_industry_with_rank <- merge(employment_by_industry_profiles, ranking_test_ordered_step_two, by = c("Town/County", "Industry Name", "FIPS", "Value", "Year", "Ownership", "Measure Type", "Variable"), all.x = T)
-employment_by_industry_with_rank <- arrange(employment_by_industry_with_rank, `Town/County`, `Industry Name`, `Variable`)
+profiles_with_rank <- merge(complete_profiles, ranking_test_ordered_step_two, 
+                                          by = c("Town/County", "Industry Name", "FIPS", "Value", "Year", "Ownership", "Measure Type", "Variable", "Rank"), all.y = T)
 
 #Step 13: redistribute Rank assignments (so all variables within a given industry get correct Rank assignments)
-subset_for_backfill <- employment_by_industry_with_rank[,c(1,2,10)]
-subset_for_backfill <- subset_for_backfill[!is.na(subset_for_backfill$Rank.y),]
-subset_for_backfill <- arrange(subset_for_backfill, `Town/County`, `Rank.y`)
+subset_for_backfill <- profiles_with_rank[,c(1,2,9)]
+subset_for_backfill <- arrange(subset_for_backfill, `Town/County`, `Rank`)
 
 #Step 14: Finally, merge final ranking df back with original df
-employment_by_industry_with_FINAL_rank <- merge(employment_by_industry_with_rank, subset_for_backfill, by = c("Town/County", "Industry Name"))
+profiles_with_FINAL_rank <- merge(complete_profiles, subset_for_backfill, by = c("Town/County", "Industry Name"), all=T)
+profiles_with_FINAL_rank_ordered <- arrange(profiles_with_FINAL_rank, `Town/County`, `Rank.y`)
+
+profiles_with_FINAL_rank_ordered <- profiles_with_FINAL_rank_ordered[!is.na(profiles_with_FINAL_rank_ordered$Rank.y),]
 
 #Clean up columns
-names(employment_by_industry_with_FINAL_rank)[names(employment_by_industry_with_FINAL_rank) == "Rank.y.y"] <- "Rank"
-employment_by_industry_with_FINAL_rank$Rank.x <- NULL
-employment_by_industry_with_FINAL_rank$Rank.y.x <- NULL
+profiles_with_FINAL_rank_ordered$Rank.x <- NULL
 
-#Sort columns
-employment_by_industry_with_FINAL_rank <- arrange(employment_by_industry_with_FINAL_rank, `Town/County`, `Rank`)
+names(profiles_with_FINAL_rank_ordered)[names(profiles_with_FINAL_rank_ordered) == "Rank.y"] <- "Rank"
 
 #Reorder columns
-employment_by_industry_with_FINAL_rank <- employment_by_industry_with_FINAL_rank %>% 
+profiles_with_FINAL_rank_ordered <- profiles_with_FINAL_rank_ordered %>% 
   select(`Town/County`, `FIPS`, `Year`, `Ownership`, `Industry Name`, `Measure Type`, `Variable`, `Value`, `Rank`)
-
-employment_by_industry_with_FINAL_rank <- employment_by_industry_with_FINAL_rank[!duplicated(employment_by_industry_with_FINAL_rank), ]
-
-#troubleshooting
-rank <- employment_by_industry_with_FINAL_rank[employment_by_industry_with_FINAL_rank$Rank == 3,]
-
-
 
 # Write to File
 write.table(
-  employment_by_industry_with_FINAL_rank,
+  profiles_with_FINAL_rank_ordered,
   file.path(getwd(), "data", "employment_by_industry_2015_with_rank.csv"),
   sep = ",",
   row.names = F
