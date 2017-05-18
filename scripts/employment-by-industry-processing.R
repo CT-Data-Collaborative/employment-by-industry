@@ -97,6 +97,8 @@ for (i in 1:length(town_xls)) {
 all_towns <- all_towns[!is.na(all_towns$`Industry Name`),]
 all_towns <- all_towns[all_towns$`Industry Name` != "Industry",]
 
+all_towns_for_rank <- all_towns
+
 #set * to -9999 (suppressions)
 all_towns[all_towns == "*"] <- -9999
 
@@ -140,7 +142,7 @@ town_long_fips <- town_long_fips %>%
   select(`Town/County`, `FIPS`, `Year`, `Ownership`, `Industry Name`, `Variable`, `Value`)
 
 #Cleanup
-rm(all_towns, town_long, current_file, currentTown, currentownership, fips)
+rm(town_long, current_file, currentTown, currentownership, fips)
 
 ##County Data####################################################################################################################
 
@@ -227,6 +229,9 @@ for (i in 1:length(county_data)) {
   all_counties <- rbind(all_counties, current_county_df)  
 }
 
+all_counties_for_rank <- all_counties
+
+
 #set * to -9999 (suppressions)
 all_counties[all_counties == "*"] <- -9999
 
@@ -236,6 +241,9 @@ all_counties[is.na(all_counties)] <- -6666
 #set digits
 cols <- c("Number of Employers", "Annual Average Employment", "Annual Average Wage")
 all_counties[cols] <- sapply(all_counties[cols],as.numeric)
+
+all_counties <- all_counties %>% 
+  select(`Town/County`, `Industry Name`, `Number of Employers`, `Annual Average Employment`, `Annual Average Wage`, `Year`, `Ownership`)
 
 #Convert to long format
 long_row_count = nrow(all_counties) * length(cols_to_stack)
@@ -266,7 +274,7 @@ county_long_fips <- county_long_fips %>%
   select(`Town/County`, `FIPS`, `Year`, `Ownership`, `Industry Name`, `Variable`, `Value`)
 
 #Cleanup
-rm(list=ls(pattern="20"), all_counties, county_long, current_county_df, currentownership, fips)
+rm(list=ls(pattern="20"), county_long, current_county_df, currentownership, fips)
 
 ##State Data#####################################################################################################################
 
@@ -321,6 +329,8 @@ for (i in 1:length(state_xls)) {
   all_state_years <- rbind(all_state_years, current_file) 
 }
 
+all_state_years_for_rank <- all_state_years
+
 #set * to -9999 (suppressions)
 all_state_years[all_state_years == "*"] <- -9999
 
@@ -357,7 +367,7 @@ state_long_fips <- state_long_fips %>%
   select(`Town/County`, `FIPS`, `Year`, `Ownership`, `Industry Name`, `Variable`, `Value`)
 
 #Cleanup
-rm(current_file, currentownership, state_long, all_state_years)
+rm(current_file, currentownership, state_long)
 
 #################################################################################################################
 
@@ -398,14 +408,20 @@ employment_by_industry$Year <- as.numeric(employment_by_industry$Year)
 latest_year <- max(employment_by_industry$Year)
 employment_by_industry_profiles <- employment_by_industry[employment_by_industry$Year == latest_year,]
 
-#Step 1b: Isolate towns only
-# omit <- c("County", "Connecticut")
-# employment_by_industry_profiles <- employment_by_industry_profiles[!grepl(paste(omit, collapse = "|"), employment_by_industry_profiles$"Town/County"),]
+#Step 1b: Combine Private + Gov't owned industries for each location
+#Take town/county/state data before it was converted to long format
+subset_for_ranking <- rbind(all_towns_for_rank, all_counties_for_rank, all_state_years_for_rank)
 
-#need to figure out from all industries, which ownership corresponds to the top industry
-#For example, Hartford County has Private Manufacturing and Government Manufacturing, we just want to grab the larger of the two
-#This is determined by the Annual Average Employment value
-subset_for_ranking <- employment_by_industry_profiles[employment_by_industry_profiles$Variable == "Annual Average Employment",]
+#convert * to NA for aggregate
+subset_for_ranking[subset_for_ranking == "*"] <- 0
+
+subset_for_ranking_agg <- subset_for_ranking %>% 
+  group_by(`Town/County`, `Year`, `Industry Name`) %>% 
+  summarise(`Number of Employers_sum` = sum(as.numeric(`Number of Employers`, na.rm=T)), 
+            `Annual Average Employment_avg` = mean(as.numeric(`Annual Average Employment`, na.rm=T)), 
+            `Annual Average Wage_avg` = mean(as.numeric(`Annual Average Wage`, na.rm=T)))
+
+#subset_for_ranking <- employment_by_industry_profiles[employment_by_industry_profiles$Variable == "Annual Average Employment",]
 
 max_ownership <- subset_for_ranking %>% 
   group_by(`Town/County`, `Year`, `Industry Name`) %>% 
@@ -485,15 +501,15 @@ subset_for_backfill <- profiles_with_rank[,c(1,2,9)]
 subset_for_backfill <- arrange(subset_for_backfill, `Town/County`, `Rank`)
 
 #Step 14: Finally, merge final ranking df back with original df
-profiles_with_FINAL_rank <- merge(complete_profiles, subset_for_backfill, by = c("Town/County", "Industry Name"), all=T)
-profiles_with_FINAL_rank_ordered <- arrange(profiles_with_FINAL_rank, `Town/County`, `Rank.y`)
+profiles_with_FINAL_rank <- merge(employment_by_industry_profiles, subset_for_backfill, by = c("Town/County", "Industry Name"), all=T)
+profiles_with_FINAL_rank_ordered <- arrange(profiles_with_FINAL_rank, `Town/County`, `Rank`)
 
-profiles_with_FINAL_rank_ordered <- profiles_with_FINAL_rank_ordered[!is.na(profiles_with_FINAL_rank_ordered$Rank.y),]
+profiles_with_FINAL_rank_ordered <- profiles_with_FINAL_rank_ordered[!is.na(profiles_with_FINAL_rank_ordered$Rank),]
 
 #Clean up columns
-profiles_with_FINAL_rank_ordered$Rank.x <- NULL
+# profiles_with_FINAL_rank_ordered$Rank.x <- NULL
 
-names(profiles_with_FINAL_rank_ordered)[names(profiles_with_FINAL_rank_ordered) == "Rank.y"] <- "Rank"
+#names(profiles_with_FINAL_rank_ordered)[names(profiles_with_FINAL_rank_ordered) == "Rank.y"] <- "Rank"
 
 #Reorder columns
 profiles_with_FINAL_rank_ordered <- profiles_with_FINAL_rank_ordered %>% 
