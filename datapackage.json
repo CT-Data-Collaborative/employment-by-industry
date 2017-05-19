@@ -21,7 +21,7 @@
   }],
   "contributor": [],
   "resources": [{
-    "path": "data/data.csv",
+    "path": "data/employment_by_industry_2015_with_rank.csv",
     "format": "csv",
     "schema": {
       "fields": [{
@@ -52,7 +52,7 @@
       }
     }
   ],
-  "last_modified": "03/08/2017",
+  "last_modified": "05/19/2017",
   "ckan_extras": {
     "full_description": {
       "ckan_name": "Full Description",
