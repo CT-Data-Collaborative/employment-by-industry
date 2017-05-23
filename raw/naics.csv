@@ -1,0 +1,45 @@
+NAICS Code,Industry,Industry Name
+11,"Agriculture, Forestry, Fishing and Hunting","Agriculture, Forestry, Fishing and Hunting"
+11,"Agriculture, forestry, fishing and hunting","Agriculture, Forestry, Fishing and Hunting"
+21,Mining,Mining
+22,Utilities,Utilities
+23,Construction,Construction
+42,Wholesale Trade,Wholesale Trade
+42,Wholesale trade,Wholesale Trade
+51,Information,Information
+52,Finance and Insurance,Finance and Insurance
+52,Finance and insurance,Finance and Insurance
+53,Real Estate and Rental and Leasing,Real Estate and Rental and Leasing
+53,Real estate and rental and leasing,Real Estate and Rental and Leasing
+54,Professional and technical services,"Professional, Scientific, and Technical Services"
+54,"Professional, Scientific, and Technical Services","Professional, Scientific, and Technical Services"
+55,Management of Companies and Enterprises,Management of Companies and Enterprises
+55,Management of companies and enterprises,Management of Companies and Enterprises
+56,Administrative and Support and Waste Management and Remediation Services,Administrative and Waste Services
+56,Administrative and waste management,Administrative and Waste Services
+56,Administrative and Waste Services,Administrative and Waste Services
+61,Educational Services,Educational Services
+61,Educational services,Educational Services
+62,Health Care and Social Assistance,Health Care and Social Assistance
+62,Health care and social assistance,Health Care and Social Assistance
+71,"Arts, Entertainment, and Recreation","Arts, Entertainment, and Recreation"
+71,"Arts, entertainment, and recreation","Arts, Entertainment, and Recreation"
+72,Accommodation and Food Services,Accommodation and Food Services
+72,Accommodation and food services,Accommodation and Food Services
+81,Other Services (except Public Administration),Other Services (except Public Administration)
+81,"Other services, except public administration",Other Services (except Public Administration)
+92,Public Administration,Public Administration
+99,Nonclassifiable establishments,Nonclassifiable establishments
+99,Unclassifiable/unknown industry,Nonclassifiable establishments
+31-33,Manufacturing,Manufacturing
+44-45,Retail Trade,Retail Trade
+44-45,Retail trade,Retail Trade
+48-49,Transportation and Warehousing,Transportation and Warehousing
+48-49,Transportation and warehousing,Transportation and Warehousing
+,Total Federal Government,Total Federal Government
+,Total Government,Total Government
+,Total Local Government,Total Local Government
+,Total Private,Total Private
+,Total State Government,Total State Government
+,County Total,County Total 
+,Statewide Total,Statewide Total

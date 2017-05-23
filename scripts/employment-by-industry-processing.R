@@ -28,6 +28,7 @@ town_xls <- dir(town_path, pattern = "Town")
 
 #Create empty data frame
 all_towns <- data.frame(stringsAsFactors = F)
+#Populate town df
 for (i in 1:length(town_xls)) {
   current_file <- (read_excel(paste0(town_path, "/", town_xls[i]), sheet=1, skip=0))
   current_file <- current_file[, !(names(current_file) == "Suppress")]
@@ -86,10 +87,8 @@ for (i in 1:length(town_xls)) {
   current_file$Ownership[current_file$Ownership == "Local/Municipal Government"] <- "Local Government"
   #remove columns not needed
   current_file <- current_file[, !(names(current_file) == "NAICS Code")]
-
   #remove Connecticut rows
   current_file <- current_file[!current_file$`Town/County` == "State of Connecticut",]
-  
   #bind together
   all_towns <- rbind(all_towns, current_file) 
 } 
@@ -106,7 +105,7 @@ all_towns[all_towns == "*"] <- -9999
 #set any NAs as missing
 all_towns[is.na(all_towns)] <- -6666
 
-#set digits
+#set numerics
 cols <- c("Number of Employers", "Annual Average Employment", "Annual Average Wage")
 all_towns[cols] <- sapply(all_towns[cols],as.numeric)
 
@@ -143,7 +142,7 @@ town_long_fips <- town_long_fips %>%
   select(`Town/County`, `FIPS`, `Year`, `Ownership`, `Industry Name`, `Variable`, `Value`)
 
 #Cleanup
-rm(town_long, current_file, currentTown, currentownership)
+rm(all_towns, town_long, current_file, currentTown, currentownership)
 
 ##County Data####################################################################################################################
 
@@ -181,6 +180,7 @@ all_counties <- data.frame(stringsAsFactors = F)
 for (i in 1:length(county_data)) {
   #grab first county file
   current_county_df <- get(county_data[i])
+  #county_naics <- current_county_df[,c(1,3)]
   current_county_df <- current_county_df[,c(1:7)]
   #assign `Town/County` column
   current_county_df$`Town/County` <- colnames(current_county_df)[1]
@@ -275,7 +275,7 @@ county_long_fips <- county_long_fips %>%
   select(`Town/County`, `FIPS`, `Year`, `Ownership`, `Industry Name`, `Variable`, `Value`)
 
 #Cleanup
-rm(list=ls(pattern="20"), county_long, current_county_df, currentownership)
+rm(list=ls(pattern="20"), all_counties, county_long, current_county_df, currentownership)
 
 ##State Data#####################################################################################################################
 
@@ -286,6 +286,7 @@ state_xls <- dir(state_path, pattern = "CT")
 all_state_years <- data.frame(stringsAsFactors = F)
 for (i in 1:length(state_xls)) {
   current_file <- (read_excel(paste0(state_path, "/", state_xls[i]), sheet=1, skip=0))
+  #state_naics <- current_file[,c(1,3)]
   current_file <- current_file[,c(1:7)]
   colnames(current_file) <- c("NAICS Code", "Town/County", "Industry Name", "Number of Employers", 
                               "Annual Average Employment", "Total Annual Wages", "Annual Average Wage")
@@ -368,12 +369,15 @@ state_long_fips <- state_long_fips %>%
   select(`Town/County`, `FIPS`, `Year`, `Ownership`, `Industry Name`, `Variable`, `Value`)
 
 #Cleanup
-rm(current_file, currentownership, state_long)
+rm(all_state_years, current_file, currentownership, state_long)
 
 #################################################################################################################
 
 ###Merge to create completed data set
 employment_by_industry <- rbind(town_long_fips, county_long_fips, state_long_fips)
+
+#Clean up
+rm(town_long_fips, county_long_fips, state_long_fips)
 
 #remove duplicates
 employment_by_industry <- employment_by_industry[!duplicated(employment_by_industry), ]
@@ -404,39 +408,48 @@ write.table(
 
 ##Define rank (dataset for Town Profiles)
 #---------------------------------------------------------------------------------------------------------------------------------
-#Step 1: Isolate latest year from original DF
-employment_by_industry$Year <- as.numeric(employment_by_industry$Year)
-latest_year <- max(employment_by_industry$Year)
-employment_by_industry_profiles <- employment_by_industry[employment_by_industry$Year == latest_year,]
-
-#Step 2: Combine Private + Gov't owned industries for each location
+#Step 1: Combine Private + Gov't owned industries for each location
 #Take town/county/state data before it was converted to long format
 subset_for_ranking <- rbind(all_towns_for_rank, all_counties_for_rank, all_state_years_for_rank)
 
+#Clean up 
+rm(all_towns_for_rank, all_counties_for_rank, all_state_years_for_rank)
+
+#Step 2: Standardize industry names
+naics <- read.csv(file.path(path, "naics.csv"), header=T, stringsAsFactors = F)
+standardize <- merge(subset_for_ranking, naics, by.x="Industry Name", by.y = "Industry", all.x=T)
+standardize <- standardize[,-c(1,8)]
+names(standardize)[names(standardize) == "Industry.Name"] <- "Industry Name"
+standardize <- arrange(standardize, `Town/County`, Year)
+standardize <- standardize[!is.na(standardize$`Industry Name`),]
 
 #Step 3: convert * to NA for aggregate
-subset_for_ranking[subset_for_ranking == "*"] <- 0
+standardize[standardize == "*"] <- 0
 
-subset_for_ranking_agg <- subset_for_ranking %>% 
+subset_for_ranking_agg <- standardize %>% 
   group_by(`Town/County`, `Year`, `Industry Name`) %>% 
   summarise(`Number of Employers` = sum(as.numeric(`Number of Employers`)), 
             `Annual Average Employment` = mean(as.numeric(`Annual Average Employment`)), 
             `Annual Average Wage` = mean(as.numeric(`Annual Average Wage`)))
 
 #Step 4: Isolate latest year in ranking df
+subset_for_ranking_agg <- as.data.frame(subset_for_ranking_agg, stringsAsFactors=F)
 subset_for_ranking_agg$Year <- as.numeric(subset_for_ranking_agg$Year)
 latest_year <- max(subset_for_ranking_agg$Year)
 subset_for_ranking_agg <- subset_for_ranking_agg[subset_for_ranking_agg$Year == latest_year,]
 
-#Step 5: Backfill top 5 industries to all geogs
+#Step 5: Backfill all industries to all geogs
 backfill_top <- expand.grid(
-  `Town/County` = unique(employment_by_industry_profiles$`Town/County`),
-  `Industry Name` = unique(employment_by_industry_profiles$`Industry Name`)
+  `Town/County` = unique(standardize$`Town/County`),
+  `Industry Name` = unique(standardize$`Industry Name`)
 )
+backfill_top <- data.frame(lapply(backfill_top, as.character), stringsAsFactors=FALSE)
+backfill_top <- plyr::rename(backfill_top, c("Town.County"="Town/County",
+                                             "Industry.Name"="Industry Name"))
 
 complete_for_rank <- merge(backfill_top, subset_for_ranking_agg, by = c("Town/County", "Industry Name"), all.x=T)
 
-#Step 6: if Value is NA, set to 0 (they wont be considered for top, but if any are in -1, they will be picked up)
+#Step 6: if Value is NA, set to 0 (they wont be considered for top rank, but if any are in -1, they will be picked up)
 complete_for_rank$Year <- latest_year
 complete_for_rank[is.na(complete_for_rank)] = 0
 
@@ -500,6 +513,9 @@ fips <- rbind(town_fips, county_fips)
 
 ranking_fips <- merge(ranking_test_ordered_step_two, fips, by = "Town/County", all.x=T)
 
+#set FIPS for CT
+ranking_fips$"FIPS"[which(ranking_fips$`Town/County` %in% c("Connecticut"))] <- "09"
+
 ranking_fips_ordered <- arrange(ranking_fips, `Town/County`, `Rank`)
 
 #Convert to long format
@@ -526,19 +542,29 @@ ranking_fips_long$"Measure Type" <- NA
 ranking_fips_long$"Measure Type"[which(ranking_fips_long$Variable %in% c("Number of Employers", 
                                                                          "Annual Average Employment"))] <- "Number"
 ranking_fips_long$"Measure Type"[which(ranking_fips_long$Variable %in% c("Annual Average Wage"))] <- "US Dollars"
+
+#Arrange and round columns
 ranking_fips_long <- arrange(ranking_fips_long, `Town/County`, `Rank`)
 ranking_fips_long$Value <- round(ranking_fips_long$Value, 2)
-
-#Reorder columns
-ranking_fips_long <- ranking_fips_long %>% 
-  select(`Town/County`, `FIPS`, `Year`, `Industry Name`, `Measure Type`, `Variable`, `Value`, `Rank`)
 
 #set 0s back to -6666 to designate missing
 ranking_fips_long$Value[ranking_fips_long$Value == 0] <- -6666
 
+#Bring NAICS Code back in 
+employment_by_industry_complete <- merge(ranking_fips_long, naics, by.x = "Industry Name", by.y = "Industry.Name", all.x=T)
+employment_by_industry_complete$Industry <- NULL
+
+#remove duplicates
+employment_by_industry_complete <- employment_by_industry_complete[!duplicated(employment_by_industry_complete), ]
+
+#Reorder columns
+employment_by_industry_complete <- as.data.frame(employment_by_industry_complete, stringsAsFactors=F) %>% 
+  select(`Town/County`, `FIPS`, `Year`, `NAICS Code` = NAICS.Code, `Industry Name`, `Rank`, `Measure Type`, `Variable`, `Value`) %>% 
+  arrange(`Town/County`, Rank, `Industry Name`, Variable)
+
 # Write to File
 write.table(
-  ranking_fips_long,
+  employment_by_industry_complete,
   file.path(getwd(), "data", "employment_by_industry_2015_with_rank.csv"),
   sep = ",",
   row.names = F
