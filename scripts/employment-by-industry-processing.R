@@ -562,6 +562,19 @@ employment_by_industry_complete <- as.data.frame(employment_by_industry_complete
   select(`Town/County`, `FIPS`, `Year`, `NAICS Code` = NAICS.Code, `Industry Name`, `Rank`, `Measure Type`, `Variable`, `Value`) %>% 
   arrange(`Town/County`, Rank, `Industry Name`, Variable)
 
+#Tests (each should have 534 rows)
+construction <- employment_by_industry_complete[employment_by_industry_complete$`Industry Name` == "Construction",]
+manufacturing <- employment_by_industry_complete[employment_by_industry_complete$`Industry Name` == "Manufacturing",]
+retail <- employment_by_industry_complete[employment_by_industry_complete$`Industry Name` == "Retail Trade",]
+total_govt <- employment_by_industry_complete[employment_by_industry_complete$`Industry Name` == "Total Government",]
+total_priv <- employment_by_industry_complete[employment_by_industry_complete$`Industry Name` == "Total Private",]
+rank1 <- employment_by_industry_complete[employment_by_industry_complete$`Rank` == "1",]
+rank2 <- employment_by_industry_complete[employment_by_industry_complete$`Rank` == "2",]
+rank3 <- employment_by_industry_complete[employment_by_industry_complete$`Rank` == "3",]
+#Tests (should have 2670 rows)
+rank_1 <- employment_by_industry_complete[employment_by_industry_complete$`Rank` == "-1",]
+top <- unique(rank_1$`Industry Name`)
+
 # Write to File
 write.table(
   employment_by_industry_complete,

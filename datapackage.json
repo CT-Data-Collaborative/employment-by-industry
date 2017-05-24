@@ -37,13 +37,41 @@
           "type": "string",
           "dimension": false
         }, {
+          "name": "NAICS Code",
+          "type": "string",
+          "dimension": false
+        }, {  
+          "name": "Industry Name",
+          "type": "string",
+          "dimension": false
+        }, {   
+          "name": "Rank",
+          "type": "string",
+          "dimension": true, 
+          "constraints": {
+            "enum": ["-1", "1", "2", "3"]
+          }            
+        }, {        
           "name": "Measure Type",
           "type": "string",
-          "dimension": true
+          "dimension": true, 
+          "constraints": {
+            "enum": [
+              "Number", 
+              "US Dollars"
+            ]
+          }            
         }, {
           "name": "Variable",
           "type": "string",
-          "dimension": true
+          "dimension": true, 
+          "constraints": {
+            "enum": [
+              "Number of Employers",
+              "Annual Average Wage",
+              "Annual Average Employment"
+            ]
+          } 
         }, {
           "name": "Value",
           "type": "number",
@@ -52,7 +80,7 @@
       }
     }
   ],
-  "last_modified": "05/19/2017",
+  "last_modified": "05/24/2017",
   "ckan_extras": {
     "full_description": {
       "ckan_name": "Full Description",
@@ -66,27 +94,27 @@
     },
     "technical_notes": {
       "ckan_name": "Technical Notes",
-      "value": "Technical notes for advanced users",
+      "value": "",
       "type": "string"
     },
     "socrata": {
       "ckan_name": "Socrata",
-      "value": "False",,
+      "value": "False",
       "type": "string"
     },
     "socrata_url": {
       "ckan_name": "Socrata Dataset URL",
-      "value": "",,
+      "value": "",
       "type": "string"
     },
     "domain": {
       "ckan_name": "Domain",
-      "value": "Economy",
+      "value": "",
       "type": "string"
     },
     "subdomain": {
       "ckan_name": "Subdomain",
-      "value": "Employment",
+      "value": "",
       "type": "string"
     },
     "geography": {
@@ -102,7 +130,7 @@
     },
     "years_in_catalog": {
       "ckan_name": "Years in Catalog",
-      "value": [],
+      "value": ["2015"],
       "type": "array"
     },
     "latest_year": {
@@ -120,14 +148,194 @@
       "ckan_name": "Units",
       "value": {
         "Number": "",
-        "Percent": "%"
+        "Percent": "%", 
+        "US Dollars": "$"
       }
     },
+    "expected_number_of_geographies": {
+      "ckan_name": "Expected Number of Unique Geographies",
+      "value": 178,
+      "type": "string"
+    },      
     "default": {}
   },
-  "spot_checks": [],
+  "spot_checks": [
+    {
+      "type": "$lookup",
+      "filter": {
+        "Town/County": "Ansonia",
+        "Year": "2015",
+        "Rank": "-1",
+        "NAICS Code": "23",
+        "Industry Name": "Construction",
+        "Variable": "Number of Employers",
+        "Measure Type": "Number"
+      },
+      "expected": {
+        "type": "$match",
+        "number type": "int",
+        "value": 32
+      }
+    },
+    {
+      "type": "$lookup",
+      "filter": {
+        "Town/County": "Cheshire",
+        "Year": "2015",
+        "Rank": "-1",
+        "NAICS Code": "44-45",
+        "Industry Name": "Retail Trade",
+        "Variable": "Annual Average Wage",
+        "Measure Type": "US Dollars"
+      },
+      "expected": {
+        "type": "$match",
+        "number type": "float",
+        "value": -6666
+      }
+    },    
+    {
+      "type": "$lookup",
+      "filter": {
+        "Town/County": "North Stonington",
+        "Year": "2015",
+        "Rank": "-1",
+        "NAICS Code": "",
+        "Industry Name": "Total Private",
+        "Variable": "Annual Average Employment",
+        "Measure Type": "Number"
+      },
+      "expected": {
+        "type": "$match",
+        "number type": "float",
+        "value": 1546.92
+      }
+    },    
+    {
+      "type": "$lookup",
+      "filter": {
+        "Town/County": "Tolland County",
+        "Year": "2015",
+        "Rank": "2",
+        "NAICS Code": "",
+        "Industry Name": "Total State Government",
+        "Variable": "Annual Average Wage",
+        "Measure Type": "US Dollars"
+      },
+      "expected": {
+        "type": "$match",
+        "number type": "float",
+        "value": 67244.0
+      }
+    },     
+    {
+      "type": "$lookup",
+      "filter": {
+        "Town/County": "New Haven County",
+        "Year": "2015",
+        "Rank": "-1",
+        "NAICS Code": "44-45",
+        "Industry Name": "Retail Trade",
+        "Variable": "Number of Employers",
+        "Measure Type": "Number"
+      },
+      "expected": {
+        "type": "$match",
+        "number type": "float",
+        "value": 2897.0
+      }
+    },     
+    {
+      "type": "$lookup",
+      "filter": {
+        "Town/County": "Hartford",
+        "Year": "2015",
+        "Rank": "1",
+        "NAICS Code": "62",
+        "Industry Name": "Health Care and Social Assistance",
+        "Variable": "Annual Average Wage",
+        "Measure Type": "US Dollars"
+      },
+      "expected": {
+        "type": "$match",
+        "number type": "float",
+        "value": 67790.6
+      }
+    },     
+    {
+      "type": "$lookup",
+      "filter": {
+        "Town/County": "Connecticut",
+        "Year": "2015",
+        "Rank": "2",
+        "NAICS Code": "",
+        "Industry Name": "Total Local Government",
+        "Variable": "Annual Average Employment",
+        "Measure Type": "Number"
+      },
+      "expected": {
+        "type": "$match",
+        "number type": "int",
+        "value": 149709
+      }
+    },     
+    {
+      "type": "$lookup",
+      "filter": {
+        "Town/County": "Windham County",
+        "Year": "2015",
+        "Rank": "-1",
+        "NAICS Code": "23",
+        "Industry Name": "Construction",
+        "Variable": "Annual Average Employment",
+        "Measure Type": "Number"
+      },
+      "expected": {
+        "type": "$match",
+        "number type": "float",
+        "value": 550.5
+      }
+    },      
+    {
+      "type": "$lookup",
+      "filter": {
+        "Town/County": "Plymouth",
+        "Year": "2015",
+        "Rank": "2",
+        "NAICS Code": "56",
+        "Industry Name": "Administrative and Waste Services",
+        "Variable": "Annual Average Wage",
+        "Measure Type": "US Dollars"
+      },
+      "expected": {
+        "type": "$match",
+        "number type": "float",
+        "value": 25314.3
+      }
+    },       
+    {
+      "type": "$lookup",
+      "filter": {
+        "Town/County": "Colebrook",
+        "Year": "2015",
+        "Rank": "3",
+        "NAICS Code": "72",
+        "Industry Name": "Accommodation and Food Services",
+        "Variable": "Number of Employers",
+        "Measure Type": "Number"
+      },
+      "expected": {
+        "type": "$match",
+        "number type": "int",
+        "value": -6666
+      }
+    }     
+  ],
   "dimension_groups": [
-    {"Measure Type": []},
-    {"Variable": []}
+    {"Rank": ["-1", "-1", "-1", "-1", "-1", "1", "2", "3"], 
+     "Variable": ["Number of Employers",
+                  "Annual Average Wage",
+                  "Annual Average Employment"]
+    }
   ]
 }
