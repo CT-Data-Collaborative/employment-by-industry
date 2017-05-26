@@ -434,9 +434,10 @@ subset_for_ranking_agg <- standardize %>%
 
 #Step 4: Isolate latest year in ranking df
 subset_for_ranking_agg <- as.data.frame(subset_for_ranking_agg, stringsAsFactors=F)
-subset_for_ranking_agg$Year <- as.numeric(subset_for_ranking_agg$Year)
-latest_year <- max(subset_for_ranking_agg$Year)
-subset_for_ranking_agg <- subset_for_ranking_agg[subset_for_ranking_agg$Year == latest_year,]
+years <- c("2014", "2015")
+year_2014 <- subset_for_ranking_agg[subset_for_ranking_agg$Year %in% years[1],]
+year_2015 <- subset_for_ranking_agg[subset_for_ranking_agg$Year %in% years[2],]
+
 
 #Step 5: Backfill all industries to all geogs
 backfill_top <- expand.grid(
@@ -447,61 +448,63 @@ backfill_top <- data.frame(lapply(backfill_top, as.character), stringsAsFactors=
 backfill_top <- plyr::rename(backfill_top, c("Town.County"="Town/County",
                                              "Industry.Name"="Industry Name"))
 
-complete_for_rank <- merge(backfill_top, subset_for_ranking_agg, by = c("Town/County", "Industry Name"), all.x=T)
-
-#Step 6: if Value is NA, set to 0 (they wont be considered for top rank, but if any are in -1, they will be picked up)
-complete_for_rank$Year <- latest_year
-complete_for_rank[is.na(complete_for_rank)] = 0
-
-#Step 7: Hardcode "-1" rank
+#Create list of df to loop through
+dfs <- ls()[sapply(mget(ls(), .GlobalEnv), is.data.frame)]
+years_for_ranking <- grep("year", dfs, value=T)
 common <- c("Construction", "Manufacturing", "Retail Trade", "Total Private", "Total Government")
-
-complete_for_rank$Rank <- NA
-complete_for_rank$Rank[which(complete_for_rank$`Industry Name` %in% common)] <- -1
-
-#Step 8a: Define first function that applies rank grouped by town/county based on value of Annual avg. employment
 my_first_ranking_function <- function(a, b, c) {
   transform(a, ranking = ave(b, c, FUN = function(x) rank(-x, ties.method = "first")))
 }
-
-#Step 8b: Apply 1st function to subset df (first step in identifying ranks 1,2,3)
-ranking_test <- my_first_ranking_function(complete_for_rank, complete_for_rank$"Annual Average Employment", complete_for_rank$"Town/County")
-ranking_test_ordered <- arrange(ranking_test, Town.County, ranking)
-
-#Step 9: Re-assign common industy's rank to -1
-ranking_test_ordered$ranking[which(ranking_test_ordered$`Industry.Name` %in% common)] <- -1
-ranking_test_ordered <- arrange(ranking_test_ordered, Town.County, ranking)
-
-#Step 10a: Define 2nd ranking function to rank 'ranking' column so all -1 ranks are assigned rank = 5 (top 5 ranks), 
-#all subsequent industries are assigned based on chronological order of ranking column (ranking2 = rank: 6 = 1, 7 = 2, 8 = 3)
 my_second_ranking_function <- function(a, b, c) {
   transform(a, ranking2 = ave(b, c, FUN = function(x) rank(x, ties.method = "max")))
 }
 
+##Loop steps:
+#Step 6: if Value is NA, set to 0 (they wont be considered for top rank, but if any are in -1, they will be picked up)
+#Step 7: Hardcode "-1" rank
+#Step 8a: Define first function that applies rank grouped by town/county based on value of Annual avg. employment
+# #Step 8b: Apply 1st function to subset df (first step in identifying ranks 1,2,3)
+#Step 9: Re-assign common industy's rank to -1
+#Step 10a: Define 2nd ranking function to rank 'ranking' column so all -1 ranks are assigned rank = 5 (top 5 ranks), 
+#all subsequent industries are assigned based on chronological order of ranking column (ranking2 = rank: 6 = 1, 7 = 2, 8 = 3)
 #Step 10b: Apply 2nd function to rank ordered rank df
-ranking_step_two <- my_second_ranking_function(ranking_test_ordered, ranking_test_ordered$ranking, ranking_test_ordered$"Town.County")
-ranking_step_two <- arrange(ranking_step_two, Town.County, ranking2)
-
 #Step 10c: Reassign rank columns to establish final "Rank" values
-ranking_step_two$Rank <- NULL
-ranking_step_two$ranking <- NULL
-ranking_step_two$ranking2[ranking_step_two$ranking2 == 5] <- -1
-ranking_step_two$ranking2[ranking_step_two$ranking2 == 6] <- 1
-ranking_step_two$ranking2[ranking_step_two$ranking2 == 7] <- 2
-ranking_step_two$ranking2[ranking_step_two$ranking2 == 8] <- 3
-
 #Step 11: Set all other industries (anything that isn't top 8) to NA
-ranking_step_two$ranking2[ranking_step_two$ranking2 > 3] <- NA
-ranking_test_ordered_step_two <- arrange(ranking_step_two, Town.County, ranking2)
-ranking_test_ordered_step_two <- ranking_test_ordered_step_two[!is.na(ranking_test_ordered_step_two$ranking2),]
+#Step 12: Finally, combine for complete df
+
+ranking_years <- data.frame(stringsAsFactors = F)
+for (i in 1:length(years_for_ranking)) {
+  current_year <- get(years_for_ranking[i])
+  complete_for_rank <- merge(backfill_top, current_year, by = c("Town/County", "Industry Name"), all.x=T)
+  get_year <- unique(as.numeric(unlist(gsub("[^0-9]", "", unlist(years_for_ranking[i])), "")))
+  complete_for_rank$Year <- get_year
+  complete_for_rank[is.na(complete_for_rank)] = 0
+  complete_for_rank$Rank <- NA
+  complete_for_rank$Rank[which(complete_for_rank$`Industry Name` %in% common)] <- -1
+  complete_for_rank <- my_first_ranking_function(complete_for_rank, complete_for_rank$"Annual Average Employment", complete_for_rank$"Town/County")
+  complete_for_rank <- arrange(complete_for_rank, Town.County, ranking)
+  complete_for_rank$ranking[which(complete_for_rank$`Industry.Name` %in% common)] <- -1
+  complete_for_rank <- arrange(complete_for_rank, Town.County, ranking)
+  complete_for_rank <- my_second_ranking_function(complete_for_rank, complete_for_rank$ranking, complete_for_rank$"Town.County")
+  complete_for_rank <- arrange(complete_for_rank, Town.County, ranking2)
+  complete_for_rank$Rank <- NULL
+  complete_for_rank$ranking <- NULL
+  complete_for_rank$ranking2[complete_for_rank$ranking2 == 5] <- -1
+  complete_for_rank$ranking2[complete_for_rank$ranking2 == 6] <- 1
+  complete_for_rank$ranking2[complete_for_rank$ranking2 == 7] <- 2
+  complete_for_rank$ranking2[complete_for_rank$ranking2 == 8] <- 3
+  complete_for_rank$ranking2[complete_for_rank$ranking2 > 3] <- NA
+  complete_for_rank <- complete_for_rank[!is.na(complete_for_rank$ranking2),]
+  ranking_years <- rbind(ranking_years, complete_for_rank)
+}
 
 #Step 12: Finally, rename columns in ranking subset df
-ranking_test_ordered_step_two <- plyr::rename(ranking_test_ordered_step_two, c("Town.County"="Town/County",
-                                                                               "Industry.Name"="Industry Name",
-                                                                               "Number.of.Employers"="Number of Employers",
-                                                                               "Annual.Average.Employment"="Annual Average Employment",
-                                                                               "Annual.Average.Wage"="Annual Average Wage",
-                                                                               "ranking2"="Rank"))
+ranking_years <- plyr::rename(ranking_years, c("Town.County"="Town/County",
+                                               "Industry.Name"="Industry Name",
+                                               "Number.of.Employers"="Number of Employers",
+                                               "Annual.Average.Employment"="Annual Average Employment",
+                                               "Annual.Average.Wage"="Annual Average Wage",
+                                               "ranking2"="Rank"))
 
 #Merge in FIPS
 names(town_fips)[names(town_fips)=="Town"] <- "Town/County"
@@ -511,47 +514,46 @@ county_fips <- county_fips[!county_fips$`Town/County` == "Connecticut",]
 
 fips <- rbind(town_fips, county_fips)
 
-ranking_fips <- merge(ranking_test_ordered_step_two, fips, by = "Town/County", all.x=T)
+ranking_years <- merge(ranking_years, fips, by = "Town/County", all.x=T)
 
 #set FIPS for CT
-ranking_fips$"FIPS"[which(ranking_fips$`Town/County` %in% c("Connecticut"))] <- "09"
-
-ranking_fips_ordered <- arrange(ranking_fips, `Town/County`, `Rank`)
+ranking_years$"FIPS"[which(ranking_years$`Town/County` %in% c("Connecticut"))] <- "09"
+ranking_years <- arrange(ranking_years, `Town/County`, `Year`, `Rank`)
 
 #Convert to long format
 cols_to_stack <- c("Number of Employers", 
                    "Annual Average Employment", 
                    "Annual Average Wage")
 
-long_row_count = nrow(ranking_fips_ordered) * length(cols_to_stack)
+long_row_count = nrow(ranking_years) * length(cols_to_stack)
 
-ranking_fips_long <- reshape(ranking_fips_ordered, 
-                     varying = cols_to_stack, 
-                     v.names = "Value", 
-                     timevar = "Variable", 
-                     times = cols_to_stack, 
-                     new.row.names = 1:long_row_count,
-                     direction = "long"
+ranking_years_long <- reshape(ranking_years, 
+                              varying = cols_to_stack, 
+                              v.names = "Value", 
+                              timevar = "Variable", 
+                              times = cols_to_stack, 
+                              new.row.names = 1:long_row_count,
+                              direction = "long"
 )
 
-ranking_fips_long$id <- NULL
+ranking_years_long$id <- NULL
 
 #Add Measure Type
-ranking_fips_long$"Measure Type" <- NA
+ranking_years_long$"Measure Type" <- NA
 ##fill in 'Measure Type' column based on criteria listed below
-ranking_fips_long$"Measure Type"[which(ranking_fips_long$Variable %in% c("Number of Employers", 
-                                                                         "Annual Average Employment"))] <- "Number"
-ranking_fips_long$"Measure Type"[which(ranking_fips_long$Variable %in% c("Annual Average Wage"))] <- "US Dollars"
+ranking_years_long$"Measure Type"[which(ranking_years_long$Variable %in% c("Number of Employers", 
+                                                                           "Annual Average Employment"))] <- "Number"
+ranking_years_long$"Measure Type"[which(ranking_years_long$Variable %in% c("Annual Average Wage"))] <- "US Dollars"
 
 #Arrange and round columns
-ranking_fips_long <- arrange(ranking_fips_long, `Town/County`, `Rank`)
-ranking_fips_long$Value <- round(ranking_fips_long$Value, 2)
+ranking_years_long <- arrange(ranking_years_long, `Town/County`, `Year`, `Rank`)
+ranking_years_long$Value <- round(ranking_years_long$Value, 2)
 
 #set 0s back to -6666 to designate missing
-ranking_fips_long$Value[ranking_fips_long$Value == 0] <- -6666
+ranking_years_long$Value[ranking_years_long$Value == 0] <- -6666
 
 #Bring NAICS Code back in 
-employment_by_industry_complete <- merge(ranking_fips_long, naics, by.x = "Industry Name", by.y = "Industry.Name", all.x=T)
+employment_by_industry_complete <- merge(ranking_years_long, naics, by.x = "Industry Name", by.y = "Industry.Name", all.x=T)
 employment_by_industry_complete$Industry <- NULL
 
 #remove duplicates
@@ -560,9 +562,9 @@ employment_by_industry_complete <- employment_by_industry_complete[!duplicated(e
 #Reorder columns
 employment_by_industry_complete <- as.data.frame(employment_by_industry_complete, stringsAsFactors=F) %>% 
   select(`Town/County`, `FIPS`, `Year`, `NAICS Code` = NAICS.Code, `Industry Name`, `Rank`, `Measure Type`, `Variable`, `Value`) %>% 
-  arrange(`Town/County`, Rank, `Industry Name`, Variable)
+  arrange(`Town/County`, Year, Rank, `Industry Name`, Variable)
 
-#Tests (each should have 534 rows)
+#Tests (each should have 1068 rows)
 construction <- employment_by_industry_complete[employment_by_industry_complete$`Industry Name` == "Construction",]
 manufacturing <- employment_by_industry_complete[employment_by_industry_complete$`Industry Name` == "Manufacturing",]
 retail <- employment_by_industry_complete[employment_by_industry_complete$`Industry Name` == "Retail Trade",]
@@ -571,15 +573,21 @@ total_priv <- employment_by_industry_complete[employment_by_industry_complete$`I
 rank1 <- employment_by_industry_complete[employment_by_industry_complete$`Rank` == "1",]
 rank2 <- employment_by_industry_complete[employment_by_industry_complete$`Rank` == "2",]
 rank3 <- employment_by_industry_complete[employment_by_industry_complete$`Rank` == "3",]
-#Tests (should have 2670 rows)
+#Tests (should have 5340 rows)
 rank_1 <- employment_by_industry_complete[employment_by_industry_complete$`Rank` == "-1",]
 top <- unique(rank_1$`Industry Name`)
 
 # Write to File
 write.table(
   employment_by_industry_complete,
-  file.path(getwd(), "data", "employment_by_industry_2015_with_rank.csv"),
+  file.path(getwd(), "data", "employment_by_industry_2014_2015_with_rank.csv"),
   sep = ",",
   row.names = F
 )
+
+
+
+
+
+
 

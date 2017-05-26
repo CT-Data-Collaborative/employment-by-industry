@@ -21,7 +21,7 @@
   }],
   "contributor": [],
   "resources": [{
-    "path": "data/employment_by_industry_2015_with_rank.csv",
+    "path": "data/employment_by_industry_2014_2015_with_rank.csv",
     "format": "csv",
     "schema": {
       "fields": [{
@@ -80,7 +80,7 @@
       }
     }
   ],
-  "last_modified": "05/24/2017",
+  "last_modified": "05/26/2017",
   "ckan_extras": {
     "full_description": {
       "ckan_name": "Full Description",
@@ -130,7 +130,7 @@
     },
     "years_in_catalog": {
       "ckan_name": "Years in Catalog",
-      "value": ["2015"],
+      "value": ["2014", "2015"],
       "type": "array"
     },
     "latest_year": {
@@ -160,6 +160,177 @@
     "default": {}
   },
   "spot_checks": [
+    {
+      "type": "$lookup",
+      "filter": {
+        "Town/County": "Ansonia",
+        "Year": "2014",
+        "Rank": "-1",
+        "NAICS Code": "23",
+        "Industry Name": "Construction",
+        "Variable": "Number of Employers",
+        "Measure Type": "Number"
+      },
+      "expected": {
+        "type": "$match",
+        "number type": "int",
+        "value": 32
+      }
+    },
+    {
+      "type": "$lookup",
+      "filter": {
+        "Town/County": "Cheshire",
+        "Year": "2014",
+        "Rank": "-1",
+        "NAICS Code": "44-45",
+        "Industry Name": "Retail Trade",
+        "Variable": "Annual Average Wage",
+        "Measure Type": "US Dollars"
+      },
+      "expected": {
+        "type": "$match",
+        "number type": "float",
+        "value": 27832.8
+      }
+    },    
+    {
+      "type": "$lookup",
+      "filter": {
+        "Town/County": "North Stonington",
+        "Year": "2014",
+        "Rank": "-1",
+        "NAICS Code": "",
+        "Industry Name": "Total Private",
+        "Variable": "Annual Average Employment",
+        "Measure Type": "Number"
+      },
+      "expected": {
+        "type": "$match",
+        "number type": "float",
+        "value": 1562.5
+      }
+    },    
+    {
+      "type": "$lookup",
+      "filter": {
+        "Town/County": "Tolland County",
+        "Year": "2014",
+        "Rank": "2",
+        "NAICS Code": "",
+        "Industry Name": "Total State Government",
+        "Variable": "Annual Average Wage",
+        "Measure Type": "US Dollars"
+      },
+      "expected": {
+        "type": "$match",
+        "number type": "float",
+        "value": 64404
+      }
+    },     
+    {
+      "type": "$lookup",
+      "filter": {
+        "Town/County": "New Haven County",
+        "Year": "2014",
+        "Rank": "-1",
+        "NAICS Code": "44-45",
+        "Industry Name": "Retail Trade",
+        "Variable": "Number of Employers",
+        "Measure Type": "Number"
+      },
+      "expected": {
+        "type": "$match",
+        "number type": "float",
+        "value": 2883
+      }
+    },     
+    {
+      "type": "$lookup",
+      "filter": {
+        "Town/County": "Hartford",
+        "Year": "2014",
+        "Rank": "1",
+        "NAICS Code": "52",
+        "Industry Name": "Finance and Insurance",
+        "Variable": "Annual Average Wage",
+        "Measure Type": "US Dollars"
+      },
+      "expected": {
+        "type": "$match",
+        "number type": "float",
+        "value": 151237.0
+      }
+    },     
+    {
+      "type": "$lookup",
+      "filter": {
+        "Town/County": "Connecticut",
+        "Year": "2014",
+        "Rank": "2",
+        "NAICS Code": "",
+        "Industry Name": "Total Local Government",
+        "Variable": "Annual Average Employment",
+        "Measure Type": "Number"
+      },
+      "expected": {
+        "type": "$match",
+        "number type": "int",
+        "value": 151347
+      }
+    },     
+    {
+      "type": "$lookup",
+      "filter": {
+        "Town/County": "Windham County",
+        "Year": "2014",
+        "Rank": "-1",
+        "NAICS Code": "23",
+        "Industry Name": "Construction",
+        "Variable": "Annual Average Employment",
+        "Measure Type": "Number"
+      },
+      "expected": {
+        "type": "$match",
+        "number type": "float",
+        "value": 563
+
+      }
+    },      
+    {
+      "type": "$lookup",
+      "filter": {
+        "Town/County": "Plymouth",
+        "Year": "2014",
+        "Rank": "2",
+        "NAICS Code": "72",
+        "Industry Name": "Accommodation and Food Services",
+        "Variable": "Annual Average Wage",
+        "Measure Type": "US Dollars"
+      },
+      "expected": {
+        "type": "$match",
+        "number type": "float",
+        "value": 13976.1
+      }
+    },       
+    {
+      "type": "$lookup",
+      "filter": {
+        "Town/County": "Colebrook",
+        "Year": "2014",
+        "Rank": "3",
+        "NAICS Code": "72",
+        "Industry Name": "Accommodation and Food Services",
+        "Variable": "Number of Employers",
+        "Measure Type": "Number"
+      },
+      "expected": {
+        "type": "$match",
+        "number type": "int",
+        "value": -6666
+      }
+    },      
     {
       "type": "$lookup",
       "filter": {
