@@ -157,7 +157,17 @@
       "value": 178,
       "type": "string"
     },      
-    "default": {}
+    "default": {      
+      "ckan_name": "Default",
+      "value": {
+        "Measure Type": "Number",
+        "Town/County": "Connecticut",
+        "Year": ["2015"],
+        "Industry Name": ["Total Government"],
+        "Variable": ["Number of Employers"]
+      },
+      "type": "object"
+    }
   },
   "spot_checks": [
     {
