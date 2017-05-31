@@ -1,7 +1,7 @@
 {
   "name": "employment-by-industry",
   "datapackage_version": "1.0-beta.18",
-  "title": "Employment-by-Industry",
+  "title": "Employment by Industry",
   "description": "Employment by Industry reports several labor statistics related to employment and wage.",
   "version": "1.0",
   "licenses": [{
