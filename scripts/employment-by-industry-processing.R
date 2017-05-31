@@ -8,7 +8,7 @@ library(tidyr)
 #
 # Processing Script for Employment-by-Industry
 # Created by Jenna Daly
-# On 05/10/2017
+# On 05/31/2017
 #
 ##################################################################
 
@@ -63,8 +63,10 @@ for (i in 1:length(town_xls)) {
   current_file <- current_file[current_file$`NAICS Code`<=100,]
   #make copy of category column, this new column with assign ownership
   current_file$Ownership <- current_file$`Industry Name`
+  #set total - all industries in ownership column to "Private Ownership"
+  current_file$Ownership[current_file$Ownership == "Total - All Industries"] <- "Private Ownership"
   #set all values not equal to top level to NA
-  top_levels <- c("Total - All Industries", "Total Government", "Federal Government", "State Government", "Local/Municipal Government") 
+  top_levels <- c("Private Ownership", "Total Government", "Federal Government", "State Government", "Local/Municipal Government") 
   current_file <- current_file %>% mutate(Ownership = replace(Ownership, !(Ownership %in% top_levels), NA))
   #populate blank ownership rows with corresponding ownership
   currentownership = current_file[1,8]
@@ -75,16 +77,8 @@ for (i in 1:length(town_xls)) {
       currentownership <- current_file[i,8]
     }
   }
-  #relabel Industry Name column
-  current_file$`Industry Name`[current_file$`Industry Name` == "Total - All Industries"] <- "Total Private"
-  current_file$`Industry Name`[current_file$`Industry Name` == "Federal Government"] <- "Total Federal Government"
-  current_file$`Industry Name`[current_file$`Industry Name` == "State Government"] <- "Total State Government"
-  current_file$`Industry Name`[current_file$`Industry Name` == "Local/Municipal Government"] <- "Total Local Government"
-  #relabel ownership column
-  current_file$Ownership[current_file$Ownership == "Total - All Industries"] <- "Private Ownership"
-  current_file$Ownership[current_file$Ownership == "Total Federal Government"] <- "Federal Government"
-  current_file$Ownership[current_file$Ownership == "Total State Government"] <- "State Government"
-  current_file$Ownership[current_file$Ownership == "Local/Municipal Government"] <- "Local Government"
+  #set private ownership back to All for industry name = total - all industries
+  current_file$Ownership[current_file$`Industry Name` == "Total - All Industries"] <- "All"
   #remove columns not needed
   current_file <- current_file[, !(names(current_file) == "NAICS Code")]
   #remove Connecticut rows
@@ -92,7 +86,7 @@ for (i in 1:length(town_xls)) {
   #bind together
   all_towns <- rbind(all_towns, current_file) 
 } 
-  
+
 #remove all rows where industry name is NA or Industry
 all_towns <- all_towns[!is.na(all_towns$`Industry Name`),]
 all_towns <- all_towns[all_towns$`Industry Name` != "Industry",]
@@ -181,16 +175,16 @@ for (i in 1:length(county_data)) {
   #grab first county file
   current_county_df <- get(county_data[i])
   #county_naics <- current_county_df[,c(1,3)]
-  current_county_df <- current_county_df[,c(1:7)]
+  current_county_df <- current_county_df[,c(1,3,4,5,7)]
   #assign `Town/County` column
   current_county_df$`Town/County` <- colnames(current_county_df)[1]
   #Assign year column
   get_year <- unique(as.numeric(unlist(gsub("[^0-9]", "", unlist(county_data[i])), "")))
   current_county_df$Year <- get_year
   #name columns, so they can be selected
-  colnames(current_county_df) <- c("Naics Code", "", "Industry Name", "Number of Employers", "Annual Average Employment", 
-                                   "Total Annual Wages", "Annual Average Wage", "Town/County", "Year")
-  #remove blank rows
+  colnames(current_county_df) <- c("Naics Code", "Industry Name", "Number of Employers", "Annual Average Employment", 
+                                   "Annual Average Wage", "Town/County", "Year")
+  #remove blank rows (where Industry name is NA)
   current_county_df <- current_county_df %>% drop_na(`Industry Name`)  
   #remove first row
   current_county_df <- current_county_df[-1,]
@@ -202,36 +196,36 @@ for (i in 1:length(county_data)) {
   current_county_df <- current_county_df[current_county_df$`Naics Code`<=100,]
   #make copy of category column, this new column with assign ownership
   current_county_df$Ownership <- current_county_df$`Industry Name`
+  #set County Total ownership to All
+  current_county_df$Ownership[current_county_df$Ownership == "County Total"] <- "All"
+  current_county_df$Ownership[current_county_df$Ownership == "Total Private"] <- "Private Ownership"  
   #set all values not equal to top level to NA
-  top_levels <- c("County Total", "Total Private", "Total Government", "Total Federal Government", "Total State Government", "Total Local Government") 
+  top_levels <- c("All", "Private Ownership", "Total Government", "Total Federal Government", "Total State Government", "Total Local Government") 
   current_county_df <- current_county_df %>% mutate(Ownership = replace(Ownership, !(Ownership %in% top_levels), NA))
   #populate blank ownership rows with corresponding ownership
-  currentownership = current_county_df[1,10]
+  currentownership = current_county_df[1,8]
   for (i in 1:nrow(current_county_df)) {
-    if(is.na(current_county_df[i,10])) {
-      current_county_df[i,10] <- currentownership
+    if(is.na(current_county_df[i,8])) {
+      current_county_df[i,8] <- currentownership
     } else {
-      currentownership <- current_county_df[i,10]
+      currentownership <- current_county_df[i,8]
     }
   }
-  #relabel ownership column
-  current_county_df$Ownership[current_county_df$Ownership == "County Total"] <- "All"
-  current_county_df$Ownership[current_county_df$Ownership == "Total Private"] <- "Private Ownership"
-  current_county_df$Ownership[current_county_df$Ownership == "Total Federal Government"] <- "Federal Government"
-  current_county_df$Ownership[current_county_df$Ownership == "Total State Government"] <- "State Government"
-  current_county_df$Ownership[current_county_df$Ownership == "Total Local Government"] <- "Local Government"
-  #remove columns not needed
-  current_county_df <- current_county_df[, !(names(current_county_df) == "Naics Code")]
-  current_county_df <- current_county_df[, !(names(current_county_df) == "")]
-  current_county_df <- current_county_df[, !(names(current_county_df) == "Total Annual Wages")]
-  current_county_df <- current_county_df[, !(names(current_county_df) == "Average Weekly Wage")]
-  
   #bind all counties together
   all_counties <- rbind(all_counties, current_county_df)  
 }
+#relabel industry column
+all_counties$`Industry Name`[all_counties$`Industry Name` == "County Total"] <- "All Industries"
+all_counties$`Industry Name`[all_counties$`Industry Name` == "Total Federal Government"] <- "Federal Government"
+all_counties$`Industry Name`[all_counties$`Industry Name` == "Total State Government"] <- "State Government"
+all_counties$`Industry Name`[all_counties$`Industry Name` == "Total Local Government"] <- "Local/Municipal Government"
+
+#remove columns not needed
+all_counties <- all_counties[, !(names(all_counties) == "Naics Code")]
 
 all_counties_for_rank <- all_counties
-
+all_counties_for_rank <- all_counties_for_rank %>% 
+  select(`Town/County`, `Industry Name`, `Number of Employers`, `Annual Average Employment`, `Annual Average Wage`, `Year`, `Ownership`)
 
 #set * to -9999 (suppressions)
 all_counties[all_counties == "*"] <- -9999
@@ -287,10 +281,8 @@ all_state_years <- data.frame(stringsAsFactors = F)
 for (i in 1:length(state_xls)) {
   current_file <- (read_excel(paste0(state_path, "/", state_xls[i]), sheet=1, skip=0))
   #state_naics <- current_file[,c(1,3)]
-  current_file <- current_file[,c(1:7)]
-  colnames(current_file) <- c("NAICS Code", "Town/County", "Industry Name", "Number of Employers", 
-                              "Annual Average Employment", "Total Annual Wages", "Annual Average Wage")
-  current_file <- current_file[, !(names(current_file) == "Total Annual Wages")]
+  current_file <- current_file[,c(1,3,4,5,7)]
+  colnames(current_file) <- c("NAICS Code", "Industry Name", "Number of Employers", "Annual Average Employment", "Annual Average Wage")
   current_file$`Town/County` <- "Connecticut"
   current_file <- current_file[-(1:6),]
   #assign year
@@ -298,7 +290,7 @@ for (i in 1:length(state_xls)) {
   get_year <- get_year+2000
   current_file$Year <- get_year
   #remove rows where Industry name is blank
-  current_file <- current_file[!is.na(current_file$`Industry Name`),]
+  current_file <- current_file %>% drop_na(`Industry Name`)  
   #Configure NAICS code column to filter on
   current_file$`NAICS Code` <- as.numeric(current_file$`NAICS Code`)
   #Set NAICS code to 100 if not assigned (place holder)
@@ -307,8 +299,11 @@ for (i in 1:length(state_xls)) {
   current_file <- current_file[current_file$`NAICS Code`<=100,]
   #make copy of category column, this new column with assign ownership
   current_file$Ownership <- current_file$`Industry Name`
+  #set Statewide Total ownership to All
+  current_file$Ownership[current_file$Ownership == "Statewide Total"] <- "All"
+  current_file$Ownership[current_file$Ownership == "Total Private"] <- "Private Ownership"   
   #set all values not equal to top level to NA
-  top_levels <- c("Statewide Total", "Total Private", "Total Government", "Total Federal Government", "Total State Government", "Total Local Government") 
+  top_levels <- c("All", "Private Ownership", "Total Government", "Total Federal Government", "Total State Government", "Total Local Government") 
   current_file <- current_file %>% mutate(Ownership = replace(Ownership, !(Ownership %in% top_levels), NA))
   #populate blank ownership rows with corresponding ownership
   currentownership = current_file[1,8]
@@ -319,19 +314,21 @@ for (i in 1:length(state_xls)) {
       currentownership <- current_file[i,8]
     }
   }
-  #relabel ownership column
-  current_file$Ownership[current_file$Ownership == "Statewide Total"] <- "All"
-  current_file$Ownership[current_file$Ownership == "Total Private"] <- "Private Ownership"
-  current_file$Ownership[current_file$Ownership == "Total Federal Government"] <- "Federal Government"
-  current_file$Ownership[current_file$Ownership == "Total State Government"] <- "State Government"
-  current_file$Ownership[current_file$Ownership == "Total Local Government"] <- "Local Government"
-  #remove columns not needed
-  current_file <- current_file[, !(names(current_file) == "NAICS Code")]
   #bind together
   all_state_years <- rbind(all_state_years, current_file) 
 }
+#relabel industry column
+all_state_years$`Industry Name`[all_state_years$`Industry Name` == "Statewide Total"] <- "All Industries"
+all_state_years$`Industry Name`[all_state_years$`Industry Name` == "Total Federal Government"] <- "Federal Government"
+all_state_years$`Industry Name`[all_state_years$`Industry Name` == "Total State Government"] <- "State Government"
+all_state_years$`Industry Name`[all_state_years$`Industry Name` == "Total Local Government"] <- "Local/Municipal Government"
+
+#remove columns not needed
+current_file <- current_file[, !(names(current_file) == "NAICS Code")]
 
 all_state_years_for_rank <- all_state_years
+all_state_years_for_rank <- all_state_years_for_rank %>% 
+  select(`Town/County`, `Industry Name`, `Number of Employers`, `Annual Average Employment`, `Annual Average Wage`, `Year`, `Ownership`)
 
 #set * to -9999 (suppressions)
 all_state_years[all_state_years == "*"] <- -9999
@@ -413,7 +410,7 @@ write.table(
 subset_for_ranking <- rbind(all_towns_for_rank, all_counties_for_rank, all_state_years_for_rank)
 
 #Clean up 
-rm(all_towns_for_rank, all_counties_for_rank, all_state_years_for_rank)
+#rm(all_towns_for_rank, all_counties_for_rank, all_state_years_for_rank)
 
 #Step 2: Standardize industry names
 naics <- read.csv(file.path(path, "naics.csv"), header=T, stringsAsFactors = F)
@@ -421,6 +418,7 @@ standardize <- merge(subset_for_ranking, naics, by.x="Industry Name", by.y = "In
 standardize <- standardize[,-c(1,8)]
 names(standardize)[names(standardize) == "Industry.Name"] <- "Industry Name"
 standardize <- arrange(standardize, `Town/County`, Year)
+#gets rid of some rows from 2009 (not needed for ranking anyway)
 standardize <- standardize[!is.na(standardize$`Industry Name`),]
 
 #Step 3: convert * to NA for aggregate
@@ -450,8 +448,8 @@ backfill_top <- plyr::rename(backfill_top, c("Town.County"="Town/County",
 
 #Create list of df to loop through
 dfs <- ls()[sapply(mget(ls(), .GlobalEnv), is.data.frame)]
-years_for_ranking <- grep("year", dfs, value=T)
-common <- c("Construction", "Manufacturing", "Retail Trade", "Total Private", "Total Government")
+years_for_ranking <- grep("year_", dfs, value=T)
+common <- c("Construction", "Manufacturing", "Retail Trade", "Total - All Industries", "All Industries", "Total Government")
 my_first_ranking_function <- function(a, b, c) {
   transform(a, ranking = ave(b, c, FUN = function(x) rank(-x, ties.method = "first")))
 }
@@ -489,10 +487,18 @@ for (i in 1:length(years_for_ranking)) {
   complete_for_rank <- arrange(complete_for_rank, Town.County, ranking2)
   complete_for_rank$Rank <- NULL
   complete_for_rank$ranking <- NULL
-  complete_for_rank$ranking2[complete_for_rank$ranking2 == 5] <- -1
-  complete_for_rank$ranking2[complete_for_rank$ranking2 == 6] <- 1
-  complete_for_rank$ranking2[complete_for_rank$ranking2 == 7] <- 2
-  complete_for_rank$ranking2[complete_for_rank$ranking2 == 8] <- 3
+  #if any county or state rows have "total - all industries" remove these rows
+  #if any town rows have "all industries" remove these rows
+  state_and_county_rows <- filter(complete_for_rank, grepl("County|Connecticut", Town.County))
+  town_rows <- filter(complete_for_rank, !grepl("County|Connecticut", Town.County))
+  state_and_county_rows <- state_and_county_rows[state_and_county_rows$Industry.Name != "Total - All Industries",]
+  town_rows <- town_rows[town_rows$Industry.Name != "All Industries",]
+  complete_for_rank <- rbind(town_rows, state_and_county_rows)
+  complete_for_rank <- arrange(complete_for_rank, Town.County, ranking2)
+  complete_for_rank$ranking2[complete_for_rank$ranking2 == 6] <- -1
+  complete_for_rank$ranking2[complete_for_rank$ranking2 == 7] <- 1
+  complete_for_rank$ranking2[complete_for_rank$ranking2 == 8] <- 2
+  complete_for_rank$ranking2[complete_for_rank$ranking2 == 9] <- 3
   complete_for_rank$ranking2[complete_for_rank$ranking2 > 3] <- NA
   complete_for_rank <- complete_for_rank[!is.na(complete_for_rank$ranking2),]
   ranking_years <- rbind(ranking_years, complete_for_rank)
@@ -549,8 +555,8 @@ ranking_years_long$"Measure Type"[which(ranking_years_long$Variable %in% c("Annu
 ranking_years_long <- arrange(ranking_years_long, `Town/County`, `Year`, `Rank`)
 ranking_years_long$Value <- round(ranking_years_long$Value, 2)
 
-#set 0s back to -6666 to designate missing
-ranking_years_long$Value[ranking_years_long$Value == 0] <- -6666
+#set 0s back to -9999 to designate missing
+ranking_years_long$Value[ranking_years_long$Value == 0] <- -9999
 
 #Bring NAICS Code back in 
 employment_by_industry_complete <- merge(ranking_years_long, naics, by.x = "Industry Name", by.y = "Industry.Name", all.x=T)
@@ -569,7 +575,10 @@ construction <- employment_by_industry_complete[employment_by_industry_complete$
 manufacturing <- employment_by_industry_complete[employment_by_industry_complete$`Industry Name` == "Manufacturing",]
 retail <- employment_by_industry_complete[employment_by_industry_complete$`Industry Name` == "Retail Trade",]
 total_govt <- employment_by_industry_complete[employment_by_industry_complete$`Industry Name` == "Total Government",]
-total_priv <- employment_by_industry_complete[employment_by_industry_complete$`Industry Name` == "Total Private",]
+#states - 1014
+total_all <- employment_by_industry_complete[employment_by_industry_complete$`Industry Name` == "Total - All Industries",]
+#counties and state - 54
+total_all2 <- employment_by_industry_complete[employment_by_industry_complete$`Industry Name` == "All Industries",]
 rank1 <- employment_by_industry_complete[employment_by_industry_complete$`Rank` == "1",]
 rank2 <- employment_by_industry_complete[employment_by_industry_complete$`Rank` == "2",]
 rank3 <- employment_by_industry_complete[employment_by_industry_complete$`Rank` == "3",]
@@ -584,10 +593,3 @@ write.table(
   sep = ",",
   row.names = F
 )
-
-
-
-
-
-
-

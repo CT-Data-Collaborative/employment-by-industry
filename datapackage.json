@@ -211,7 +211,7 @@
         "Year": "2014",
         "Rank": "-1",
         "NAICS Code": "",
-        "Industry Name": "Total Private",
+        "Industry Name": "Total - All Industries",
         "Variable": "Annual Average Employment",
         "Measure Type": "Number"
       },
@@ -228,7 +228,7 @@
         "Year": "2014",
         "Rank": "2",
         "NAICS Code": "",
-        "Industry Name": "Total State Government",
+        "Industry Name": "State Government",
         "Variable": "Annual Average Wage",
         "Measure Type": "US Dollars"
       },
@@ -260,7 +260,7 @@
       "filter": {
         "Town/County": "Hartford",
         "Year": "2014",
-        "Rank": "1",
+        "Rank": "2",
         "NAICS Code": "52",
         "Industry Name": "Finance and Insurance",
         "Variable": "Annual Average Wage",
@@ -279,7 +279,7 @@
         "Year": "2014",
         "Rank": "2",
         "NAICS Code": "",
-        "Industry Name": "Total Local Government",
+        "Industry Name": "Local/Municipal Government",
         "Variable": "Annual Average Employment",
         "Measure Type": "Number"
       },
@@ -313,15 +313,15 @@
         "Town/County": "Plymouth",
         "Year": "2014",
         "Rank": "2",
-        "NAICS Code": "72",
-        "Industry Name": "Accommodation and Food Services",
+        "NAICS Code": "56",
+        "Industry Name": "Administrative and Waste Services", 
         "Variable": "Annual Average Wage",
         "Measure Type": "US Dollars"
       },
       "expected": {
         "type": "$match",
         "number type": "float",
-        "value": 13976.1
+        "value": 23960.60
       }
     },       
     {
@@ -338,7 +338,7 @@
       "expected": {
         "type": "$match",
         "number type": "int",
-        "value": -6666
+        "value": -9999
       }
     },      
     {
@@ -372,7 +372,7 @@
       "expected": {
         "type": "$match",
         "number type": "float",
-        "value": -6666
+        "value": -9999
       }
     },    
     {
@@ -382,7 +382,7 @@
         "Year": "2015",
         "Rank": "-1",
         "NAICS Code": "",
-        "Industry Name": "Total Private",
+        "Industry Name": "Total - All Industries",
         "Variable": "Annual Average Employment",
         "Measure Type": "Number"
       },
@@ -399,7 +399,7 @@
         "Year": "2015",
         "Rank": "2",
         "NAICS Code": "",
-        "Industry Name": "Total State Government",
+        "Industry Name": "State Government",
         "Variable": "Annual Average Wage",
         "Measure Type": "US Dollars"
       },
@@ -450,7 +450,7 @@
         "Year": "2015",
         "Rank": "2",
         "NAICS Code": "",
-        "Industry Name": "Total Local Government",
+        "Industry Name": "Local/Municipal Government",
         "Variable": "Annual Average Employment",
         "Measure Type": "Number"
       },
@@ -508,7 +508,7 @@
       "expected": {
         "type": "$match",
         "number type": "int",
-        "value": -6666
+        "value": -9999
       }
     }     
   ],
