@@ -1,7 +1,5 @@
 Employment-by-Industry
 
-[![Build Status](https://travis-ci.org/CT-Data-Collaborative/employment-by-industry.svg?branch=master)](https://travis-ci.org/CT-Data-Collaborative/employment-by-industry)
-
 Employment by Industry reports several labor statistics related to employment and wage.
 
 Data Source <http://www1.ctdol.state.ct.us/lmi/202/202_annualaverage.asp>
