@@ -23,6 +23,7 @@ NAICS Code,Industry,Industry Name
 56,Administrative and waste management,Administrative and Waste Services
 56,Administrative and Waste Services,Administrative and Waste Services
 56,Administrative & Waste Management,Administrative and Waste Services
+56,Admin. & Support & Waste Mgmt. & Remed. Services,Administrative and Waste Services
 61,Educational Services,Educational Services
 61,Educational services,Educational Services
 62,Health Care and Social Assistance,Health Care and Social Assistance
@@ -32,6 +33,7 @@ NAICS Code,Industry,Industry Name
 71,"Arts, entertainment, and recreation","Arts, Entertainment, and Recreation"
 72,Accommodation and Food Services,Accommodation and Food Services
 72,Accommodation and food services,Accommodation and Food Services
+72,Accommodation & Food Services,Accommodation and Food Services
 81,Other Services (except Public Administration),Other Services (except Public Administration)
 81,"Other services, except public administration",Other Services (except Public Administration)
 81,Other Services (except Public Admin.),Other Services (except Public Administration)

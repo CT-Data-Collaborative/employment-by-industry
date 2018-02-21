@@ -21,7 +21,7 @@
   }],
   "contributor": [],
   "resources": [{
-    "path": "data/employment_by_industry_2014_2015_with_rank.csv",
+    "path": "data/employment_by_industry_2014_2016_with_rank.csv",
     "format": "csv",
     "schema": {
       "fields": [{
@@ -80,11 +80,11 @@
       }
     }
   ],
-  "last_modified": "05/26/2017",
+  "last_modified": "02/21/2018",
   "ckan_extras": {
     "full_description": {
       "ckan_name": "Full Description",
-      "value": "Employment by Industry reports the total Number of Employers, the Annual Average Employment, and the Annual Average Wage by industry at the town, county, and state level. Industries included in this dataset vary from location to location. In as many locations as possible, five specific industry segments are consistently present (Construction, Manufacturing, Retail Trade, All Industries, Total Government) as well as the largest 3 out of the remaining segments for that location. Not every location has data for every segment, and some may not have data for the five consistently reported segments. This data is from the Connecticut Department of Labor Quarterly Census of Employment and Wages (QCEW). The program produces a comprehensive tabulation of employment and wage information for workers covered by Connecticut Unemployment Insurance (UI) laws and Federal workers covered by the Unemployment Compensation for Federal Employees (UCFE) program.",
+      "value": "Employment by Industry reports the total Number of Employers, the Annual Average Employment, and the Annual Average Wage by industry at the town, county, and state level. Industries included in this dataset vary from location to location. In as many locations as possible, five specific industry segments are consistently present (Construction, Manufacturing, Retail Trade, All Industries, Total Government) as well as the largest 3 out of the remaining segments for that location, ranked by Annual Average Employment. Not every location has data for every segment, and some may not have data for the five consistently reported segments. This data is from the Connecticut Department of Labor Quarterly Census of Employment and Wages (QCEW). The program produces a comprehensive tabulation of employment and wage information for workers covered by Connecticut Unemployment Insurance (UI) laws and Federal workers covered by the Unemployment Compensation for Federal Employees (UCFE) program.",
       "type": "string"
     },
     "suppression": {
@@ -130,12 +130,12 @@
     },
     "years_in_catalog": {
       "ckan_name": "Years in Catalog",
-      "value": ["2014", "2015"],
+      "value": ["2014", "2015", "2016"],
       "type": "array"
     },
     "latest_year": {
       "ckan_name": "Latest Year Available",
-      "value": "2015",
+      "value": "2016",
       "type": "string"
     },
     "disabled_views": {
@@ -162,7 +162,7 @@
       "value": {
         "Measure Type": "Number",
         "Town/County": "Connecticut",
-        "Year": ["2015"],
+        "Year": ["2016"],
         "Industry Name": ["Total Government"],
         "Variable": ["Number of Employers"]
       },
@@ -510,7 +510,24 @@
         "number type": "int",
         "value": -9999
       }
-    }     
+    }, 
+    {
+      "type": "$lookup",
+      "filter": {
+        "Town/County": "Barkhamsted",
+        "Year": "2016",
+        "Rank": "3",
+        "NAICS Code": "56",
+        "Industry Name": "Administrative and Waste Services",
+        "Variable": "Number of Employers",
+        "Measure Type": "Number"
+      },
+      "expected": {
+        "type": "$match",
+        "number type": "int",
+        "value": 8
+      }
+    }  
   ],
   "dimension_groups": [
     {"Rank": ["-1", "-1", "-1", "-1", "-1", "1", "2", "3"], 
@@ -520,3 +537,4 @@
     }
   ]
 }
+
