@@ -108,22 +108,7 @@ cols <- c("Number of Employers", "Annual Average Employment", "Annual Average Wa
 all_towns[cols] <- sapply(all_towns[cols],as.numeric)
 
 #Convert to long format
-cols_to_stack <- c("Number of Employers", 
-                   "Annual Average Employment", 
-                   "Annual Average Wage")
-
-long_row_count = nrow(all_towns) * length(cols_to_stack)
-
-town_long <- reshape(all_towns, 
-                     varying = cols_to_stack, 
-                     v.names = "Value", 
-                     timevar = "Variable", 
-                     times = cols_to_stack, 
-                     new.row.names = 1:long_row_count,
-                     direction = "long"
-)
-
-town_long$id <- NULL
+town_long <- gather(all_towns, Variable, Value, 3:5, factor_key=F)
 
 #Merge in FIPS
 town_fips_dp_URL <- 'https://raw.githubusercontent.com/CT-Data-Collaborative/ct-town-list/master/datapackage.json'
@@ -245,18 +230,7 @@ all_counties <- all_counties %>%
   select(`Town/County`, `Industry Name`, `Number of Employers`, `Annual Average Employment`, `Annual Average Wage`, `Year`, `Ownership`)
 
 #Convert to long format
-long_row_count = nrow(all_counties) * length(cols_to_stack)
-
-county_long <- reshape(all_counties, 
-                       varying = cols_to_stack, 
-                       v.names = "Value", 
-                       timevar = "Variable", 
-                       times = cols_to_stack, 
-                       new.row.names = 1:long_row_count,
-                       direction = "long"
-)
-
-county_long$id <- NULL
+county_long <- gather(all_counties, Variable, Value, 3:5, factor_key=F)
 
 #Merge in FIPS
 county_fips_dp_URL <- 'https://raw.githubusercontent.com/CT-Data-Collaborative/ct-county-list/master/datapackage.json'
@@ -345,21 +319,7 @@ cols <- c("Number of Employers", "Annual Average Employment", "Annual Average Wa
 all_state_years[cols] <- sapply(all_state_years[cols],as.numeric)
 
 #Convert to long format
-cols_to_stack <- c("Number of Employers", 
-                   "Annual Average Employment", 
-                   "Annual Average Wage")
-
-long_row_count = nrow(all_state_years) * length(cols_to_stack)
-
-state_long <- reshape(all_state_years, 
-                        varying = cols_to_stack, 
-                        v.names = "Value", 
-                        timevar = "Variable", 
-                        times = cols_to_stack, 
-                        new.row.names = 1:long_row_count,
-                        direction = "long"
-)
-state_long$id <- NULL
+state_long <- gather(all_state_years, Variable, Value, 3:5, factor_key=T)
 
 #Add FIPS (doing this manually, because only one value)
 state_long_fips <- state_long
@@ -402,7 +362,7 @@ employment_by_industry$Value <- round(employment_by_industry$Value, 2)
 #Create df without rank with all years
 write.table(
   employment_by_industry,
-  file.path(getwd(), "data", "employment_by_industry_2004_2016.csv"),
+  file.path(getwd(), "data", "employment_by_industry_2004_2017.csv"),
   sep = ",",
   row.names = F
 )
@@ -442,11 +402,14 @@ subset_for_ranking_agg <- standardize %>%
 
 #Step 4: Isolate latest year in ranking df
 subset_for_ranking_agg <- as.data.frame(subset_for_ranking_agg, stringsAsFactors=F)
-years <- c("2014", "2015", "2016")
-year_2014 <- subset_for_ranking_agg[subset_for_ranking_agg$Year %in% years[1],]
-year_2015 <- subset_for_ranking_agg[subset_for_ranking_agg$Year %in% years[2],]
-year_2016 <- subset_for_ranking_agg[subset_for_ranking_agg$Year %in% years[3],]
+years <- unique(subset_for_ranking_agg$Year[subset_for_ranking_agg$Year >= 2014])
 
+#create individual dfs for all years after 2014, name them
+for (i in 1:length(years)) {
+  df <- subset_for_ranking_agg[subset_for_ranking_agg$Year == years[i],] 
+  assign(paste0("year_", years[i]), df)
+
+}
 
 #Step 5: Backfill all industries to all geogs
 backfill_top <- expand.grid(
@@ -538,23 +501,8 @@ ranking_years$"FIPS"[which(ranking_years$`Town/County` %in% c("Connecticut"))] <
 ranking_years <- arrange(ranking_years, `Town/County`, `Year`, `Rank`)
 
 #Convert to long format
-cols_to_stack <- c("Number of Employers", 
-                   "Annual Average Employment", 
-                   "Annual Average Wage")
-
-long_row_count = nrow(ranking_years) * length(cols_to_stack)
-
-ranking_years_long <- reshape(ranking_years, 
-                              varying = cols_to_stack, 
-                              v.names = "Value", 
-                              timevar = "Variable", 
-                              times = cols_to_stack, 
-                              new.row.names = 1:long_row_count,
-                              direction = "long"
-)
-
-ranking_years_long$id <- NULL
-
+ranking_years_long <- gather(ranking_years, Variable, Value, 4:6, factor_key=F)
+                             
 #Add Measure Type
 ranking_years_long$"Measure Type" <- NA
 ##fill in 'Measure Type' column based on criteria listed below
@@ -602,7 +550,7 @@ top <- unique(rank_1$`Industry Name`)
 # Write to File
 write.table(
   employment_by_industry_complete,
-  file.path(getwd(), "data", "employment_by_industry_2014_2016_with_rank.csv"),
+  file.path(getwd(), "data", "employment_by_industry_2014_2017_with_rank.csv"),
   sep = ",",
   row.names = F
 )

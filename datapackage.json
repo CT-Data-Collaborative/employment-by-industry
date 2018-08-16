@@ -21,7 +21,7 @@
   }],
   "contributor": [],
   "resources": [{
-    "path": "data/employment_by_industry_2014_2016_with_rank.csv",
+    "path": "data/employment_by_industry_2014_2017_with_rank.csv",
     "format": "csv",
     "schema": {
       "fields": [{
@@ -80,7 +80,7 @@
       }
     }
   ],
-  "last_modified": "02/21/2018",
+  "last_modified": "08/15/2018",
   "ckan_extras": {
     "full_description": {
       "ckan_name": "Full Description",
@@ -130,12 +130,12 @@
     },
     "years_in_catalog": {
       "ckan_name": "Years in Catalog",
-      "value": ["2014", "2015", "2016"],
+      "value": ["2014", "2015", "2016", "2017"],
       "type": "array"
     },
     "latest_year": {
       "ckan_name": "Latest Year Available",
-      "value": "2016",
+      "value": "2017",
       "type": "string"
     },
     "disabled_views": {
@@ -162,7 +162,7 @@
       "value": {
         "Measure Type": "Number",
         "Town/County": "Connecticut",
-        "Year": ["2016"],
+        "Year": ["2017"],
         "Industry Name": ["Total Government"],
         "Variable": ["Number of Employers"]
       },
@@ -201,7 +201,7 @@
       "expected": {
         "type": "$match",
         "number type": "float",
-        "value": 27832.8
+        "value": 27832.82
       }
     },    
     {
@@ -269,7 +269,7 @@
       "expected": {
         "type": "$match",
         "number type": "float",
-        "value": 151237.0
+        "value": 151237.04
       }
     },     
     {
@@ -321,7 +321,7 @@
       "expected": {
         "type": "$match",
         "number type": "float",
-        "value": 23960.60
+        "value": 23960.56
       }
     },       
     {
@@ -440,7 +440,7 @@
       "expected": {
         "type": "$match",
         "number type": "float",
-        "value": 67790.6
+        "value": 67790.61
       }
     },     
     {
@@ -491,7 +491,7 @@
       "expected": {
         "type": "$match",
         "number type": "float",
-        "value": 25314.3
+        "value": 25314.25
       }
     },       
     {
@@ -530,10 +530,11 @@
     }  
   ],
   "dimension_groups": [
-    {"Rank": ["-1", "-1", "-1", "-1", "-1", "1", "2", "3"], 
+    { 
+     "Rank": ["-1", "-1", "-1", "-1", "-1", "1", "2", "3"], 
      "Variable": ["Number of Employers",
-                  "Annual Average Wage",
-                  "Annual Average Employment"]
+                  "Annual Average Employment",
+                  "Annual Average Wage"]
     }
   ]
 }
