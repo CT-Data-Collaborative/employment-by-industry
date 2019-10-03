@@ -15,13 +15,13 @@
     "web": ""
   }],
   "author":[{
-    "name": "Jenna Daly",
-    "email": "jdaly@ctdata.org",
+    "name": "Connecticut Data Collaborative",
+    "email": "info@ctdata.org",
     "web": "http://ctdata.org"
   }],
   "contributor": [],
   "resources": [{
-    "path": "data/employment_by_industry_2014_2017_with_rank.csv",
+    "path": "data/employment_by_industry_2014_2018_with_rank.csv",
     "format": "csv",
     "schema": {
       "fields": [{
@@ -80,7 +80,7 @@
       }
     }
   ],
-  "last_modified": "08/15/2018",
+  "last_modified": "10/3/2019",
   "ckan_extras": {
     "full_description": {
       "ckan_name": "Full Description",
@@ -130,12 +130,12 @@
     },
     "years_in_catalog": {
       "ckan_name": "Years in Catalog",
-      "value": ["2014", "2015", "2016", "2017"],
+      "value": ["2014", "2015", "2016", "2017", "2018"],
       "type": "array"
     },
     "latest_year": {
       "ckan_name": "Latest Year Available",
-      "value": "2017",
+      "value": "2018",
       "type": "string"
     },
     "disabled_views": {
@@ -162,7 +162,7 @@
       "value": {
         "Measure Type": "Number",
         "Town/County": "Connecticut",
-        "Year": ["2017"],
+        "Year": ["2018"],
         "Industry Name": ["Total Government"],
         "Variable": ["Number of Employers"]
       },

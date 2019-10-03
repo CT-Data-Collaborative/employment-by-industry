@@ -550,7 +550,7 @@ top <- unique(rank_1$`Industry Name`)
 # Write to File
 write.table(
   employment_by_industry_complete,
-  file.path(getwd(), "data", "employment_by_industry_2014_2017_with_rank.csv"),
+  file.path(getwd(), "data", "employment_by_industry_2014_2018_with_rank.csv"),
   sep = ",",
   row.names = F
 )
