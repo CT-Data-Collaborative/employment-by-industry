@@ -2,6 +2,7 @@ NAICS Code,Industry,Industry Name
 11,"Agriculture, Forestry, Fishing and Hunting","Agriculture, Forestry, Fishing and Hunting"
 11,"Agriculture, forestry, fishing and hunting","Agriculture, Forestry, Fishing and Hunting"
 11,"Agric., Forestry, Fishing and Hunting","Agriculture, Forestry, Fishing and Hunting"
+11,"Agric., Forestry, Fishing & Hunting","Agriculture, Forestry, Fishing and Hunting"
 21,Mining,Mining
 22,Utilities,Utilities
 23,Construction,Construction
@@ -10,12 +11,15 @@ NAICS Code,Industry,Industry Name
 51,Information,Information
 52,Finance and Insurance,Finance and Insurance
 52,Finance and insurance,Finance and Insurance
+52,Finance & Insurance,Finance and Insurance
 53,Real Estate and Rental and Leasing,Real Estate and Rental and Leasing
 53,Real estate and rental and leasing,Real Estate and Rental and Leasing
 53,Real Estate & Rental & Leasing,Real Estate and Rental and Leasing
+53,Real Estate and Rental & Leasing,Real Estate and Rental and Leasing
 54,Professional and technical services,"Professional, Scientific, and Technical Services"
 54,"Professional, Scientific, and Technical Services","Professional, Scientific, and Technical Services"
 54,"Professional, Scientific, & Tech. Services","Professional, Scientific, and Technical Services"
+54,"Professional, Scientific, & Technical Services","Professional, Scientific, and Technical Services"
 55,Management of Companies and Enterprises,Management of Companies and Enterprises
 55,Management of companies and enterprises,Management of Companies and Enterprises
 55,Management of Companies & Enterprises,Management of Companies and Enterprises
@@ -31,6 +35,7 @@ NAICS Code,Industry,Industry Name
 62,Health Care & Social Assistance,Health Care and Social Assistance
 71,"Arts, Entertainment, and Recreation","Arts, Entertainment, and Recreation"
 71,"Arts, entertainment, and recreation","Arts, Entertainment, and Recreation"
+71,"Arts, Entertainment, & Recreation","Arts, Entertainment, and Recreation"
 72,Accommodation and Food Services,Accommodation and Food Services
 72,Accommodation and food services,Accommodation and Food Services
 72,Accommodation & Food Services,Accommodation and Food Services
@@ -39,6 +44,7 @@ NAICS Code,Industry,Industry Name
 81,Other Services (except Public Admin.),Other Services (except Public Administration)
 92,Public Administration,Public Administration
 99,Nonclassifiable establishments,Nonclassifiable establishments
+99,Unclassified establishment,Nonclassifiable establishments
 99,Unclassifiable/unknown industry,Nonclassifiable establishments
 31-33,Manufacturing,Manufacturing
 44-45,Retail Trade,Retail Trade

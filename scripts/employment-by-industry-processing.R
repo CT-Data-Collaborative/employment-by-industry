@@ -3,6 +3,7 @@ library(dplyr)
 library(datapkg)
 library(readxl)
 library(tidyr)
+library(devtools)
 
 ##################################################################
 #
@@ -362,7 +363,7 @@ employment_by_industry$Value <- round(employment_by_industry$Value, 2)
 #Create df without rank with all years
 write.table(
   employment_by_industry,
-  file.path(getwd(), "data", "employment_by_industry_2004_2017.csv"),
+  file.path(getwd(), "data", "DEBUGemployment_by_industry_2004_2018.csv"),
   sep = ",",
   row.names = F
 )
@@ -550,7 +551,7 @@ top <- unique(rank_1$`Industry Name`)
 # Write to File
 write.table(
   employment_by_industry_complete,
-  file.path(getwd(), "data", "employment_by_industry_2014_2018_with_rank.csv"),
+  file.path(getwd(), "data", "DEBUGemployment_by_industry_2014_2018_with_rank.csv"),
   sep = ",",
   row.names = F
 )
